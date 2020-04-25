@@ -15,72 +15,96 @@ local vwrap, awrap = instance.Types.Vector.Wrap, instance.Types.Angle.Wrap
 
 
 
+
+
+--- True if vrmod is active
+-- @return table
+function vr_lib.active()
+    return g_VR.active
+end
+
 ------------------------------------------------------------------------------
 --Return Tracking Data--------------------------------------------------------
 ------------------------------------------------------------------------------
 
---positions as Vectors
+--- Gets all tracking data.
+-- @return table
+function vr_lib.trackingData()
+    local tbl = {}
+    for name, data in pairs(VRMOD_GetPoses()) do
+	    tbl[name] = {
+		    pos =    vwrap(data.pos),
+		    vel =    vwrap(data.vel),
+		    ang =    awrap(data.ang),
+		    angvel = awrap(data.angvel)
+	    }
+    end
+    return tbl
+end
 
---- Gets left controller position.
--- @return vector
-function vr_lib.leftPos()
-    if g_VR.tracking.pose_lefthand == nil then
-        return vwrap(Vector(0,0,0))
+--- Gets HMD tracking data.
+-- @return table
+function vr_lib.hmdData()
+    local tbl = {}
+    if VRMOD_GetPoses().hmd != nil then
+        data = VRMOD_GetPoses().hmd
+        return {
+            pos      = vwrap(data.pos),
+            vel      = vwrap(data.vel),
+            ang      = awrap(data.ang),
+            angvel   = awrap(data.angvel)
+        }
     else
-        return vwrap(g_VR.tracking.pose_lefthand.pos)
+        return {
+            pos      = vwrap(Vector(0,0,0)),
+            vel      = vwrap(Vector(0,0,0)),
+            ang      = awrap(Angle(0,0,0)),
+            angvel   = awrap(Angle(0,0,0))
+        }
     end
 end
 
---- Gets right controller position.
--- @return vector
-function vr_lib.rightPos()
-    if g_VR.tracking.pose_righthand == nil then
-        return vwrap(Vector(0,0,0))
+--- Gets left controller tracking data.
+-- @return table
+function vr_lib.leftData()
+    local tbl = {}
+    if VRMOD_GetPoses().pose_lefthand != nil then
+        data = VRMOD_GetPoses().pose_lefthand
+        return {
+            pos      = vwrap(data.pos),
+            vel      = vwrap(data.vel),
+            ang      = awrap(data.ang),
+            angvel   = awrap(data.angvel)
+        }
     else
-        return vwrap(g_VR.tracking.pose_righthand.pos)
+        return {
+            pos      = vwrap(Vector(0,0,0)),
+            vel      = vwrap(Vector(0,0,0)),
+            ang      = awrap(Angle(0,0,0)),
+            angvel   = awrap(Angle(0,0,0))
+        }
     end
 end
 
---- Gets headset position.
--- @return vector
-function vr_lib.hmdPos()
-    if g_VR.tracking.hmd == nil then
-        return vwrap(Vector(0,0,0))
+--- Gets right controller tracking data.
+-- @return table
+function vr_lib.rightData()
+    local tbl = {}
+    if VRMOD_GetPoses().pose_righthand != nil then
+        data = VRMOD_GetPoses().pose_righthand
+        return {
+            pos      = vwrap(data.pos),
+            vel      = vwrap(data.vel),
+            ang      = awrap(data.ang),
+            angvel   = awrap(data.angvel)
+        }
     else
-        return vwrap(g_VR.tracking.hmd.pos)
-    end
-end
-
-
---rotations as Angles
-
---- Gets left controller angle.
--- @return angle
-function vr_lib.leftAng()
-    if g_VR.tracking.pose_lefthand == nil then
-        return awrap(Angle(0,0,0))
-    else
-        return awrap(g_VR.tracking.pose_lefthand.ang)
-    end
-end
-
---- Gets right controller angle.
--- @return angle
-function vr_lib.rightAng()
-    if g_VR.tracking.pose_righthand == nil then
-        return awrap(Angle(0,0,0))
-    else
-        return awrap(g_VR.tracking.pose_righthand.ang)
-    end
-end
-
---- Gets headset angle.
--- @return angle
-function vr_lib.hmdAng()
-    if g_VR.tracking.hmd == nil then
-        return awrap(Angle(0,0,0))
-    else
-        return awrap(g_VR.tracking.hmd.ang)
+        return {
+            pos      = vwrap(Vector(0,0,0)),
+            vel      = vwrap(Vector(0,0,0)),
+            ang      = awrap(Angle(0,0,0)),
+            angvel   = awrap(Angle(0,0,0))
+        }
     end
 end
 
@@ -90,9 +114,9 @@ end
 
 --- Gets all actions (controller input).
 -- @return table
-function vr_lib.input()
+function vr_lib.actions()
     actions = VRMOD_GetActions()
-    if actions.vector2_walkdirection != nil then
+    if g_VR.active then
         walkDir = actions.vector2_walkdirection
         steer = actions.vector2_steer
         smooth = actions.vector2_smoothturn
@@ -120,7 +144,7 @@ function vr_lib.input()
                 turbo           = actions.boolean_turbo,
                 forward         = actions.vector1_forward,
                 reverse         = actions.vector1_reverse,
-                primaryfire_analg = actions.vector1_primaryfire,
+                primaryfire_analog = actions.vector1_primaryfire,
                 walkdirection   = wDir,
                 steerdirection  = steer,
                 smoothturn      = smootht,
@@ -131,6 +155,30 @@ function vr_lib.input()
     else
         return {}
     end
+end
+
+--- Triggers left haptic (requires user to be connected to HUD).
+-- @param number delay Delay of haptic in seconds
+-- @param number duration Duration of haptic in seconds
+-- @param number frequency Frequency of haptic in cycles per second
+-- @param number amplitude Amplitude of haptic from 0.0 to 1.0
+function vr_lib.hapticLeft(delay, duration, frequency, amplitude)
+    if instance:isHUDActive() then
+        VRMOD_TriggerHaptic("vibration_left", delay, duration, frequency, amplitude)
+    end
+    return
+end
+
+--- Triggers right haptic (requires user to be connected to HUD).
+-- @param number delay Delay of haptic in seconds
+-- @param number duration Duration of haptic in seconds
+-- @param number frequency Frequency of haptic in cycles per second
+-- @param number amplitude Amplitude of haptic from 0.0 to 1.0
+function vr_lib.hapticRight(delay, duration, frequency, amplitude)
+    if instance:isHUDActive() then
+        VRMOD_TriggerHaptic("vibration_right", delay, duration, frequency, amplitude)
+    end
+    return
 end
 
 end
