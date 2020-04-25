@@ -18,7 +18,7 @@ local vwrap, awrap = instance.Types.Vector.Wrap, instance.Types.Angle.Wrap
 
 
 --- True if vrmod is active
--- @return table
+-- @return boolean
 function vr_lib.active()
     return g_VR.active
 end
@@ -46,8 +46,8 @@ end
 -- @return table
 function vr_lib.hmdData()
     local tbl = {}
-    if VRMOD_GetPoses().hmd != nil then
-        data = VRMOD_GetPoses().hmd
+    data = VRMOD_GetPoses().hmd
+    if data != nil then
         return {
             pos      = vwrap(data.pos),
             vel      = vwrap(data.vel),
@@ -68,8 +68,8 @@ end
 -- @return table
 function vr_lib.leftData()
     local tbl = {}
-    if VRMOD_GetPoses().pose_lefthand != nil then
-        data = VRMOD_GetPoses().pose_lefthand
+    data = VRMOD_GetPoses().pose_lefthand
+    if data != nil then
         return {
             pos      = vwrap(data.pos),
             vel      = vwrap(data.vel),
@@ -90,8 +90,8 @@ end
 -- @return table
 function vr_lib.rightData()
     local tbl = {}
-    if VRMOD_GetPoses().pose_righthand != nil then
-        data = VRMOD_GetPoses().pose_righthand
+    data = VRMOD_GetPoses().pose_righthand
+    if data != nil then
         return {
             pos      = vwrap(data.pos),
             vel      = vwrap(data.vel),
@@ -157,6 +157,8 @@ function vr_lib.actions()
     end
 end
 
+
+
 --- Triggers left haptic (requires user to be connected to HUD).
 -- @param number delay Delay of haptic in seconds
 -- @param number duration Duration of haptic in seconds
@@ -164,7 +166,7 @@ end
 -- @param number amplitude Amplitude of haptic from 0.0 to 1.0
 function vr_lib.hapticLeft(delay, duration, frequency, amplitude)
     if instance:isHUDActive() then
-        VRMOD_TriggerHaptic("vibration_left", delay, duration, frequency, amplitude)
+        VRMOD_TriggerHaptic("vibration_left", delay, math.clamp(duration,0,5), frequency, amplitude)
     end
     return
 end
@@ -176,7 +178,7 @@ end
 -- @param number amplitude Amplitude of haptic from 0.0 to 1.0
 function vr_lib.hapticRight(delay, duration, frequency, amplitude)
     if instance:isHUDActive() then
-        VRMOD_TriggerHaptic("vibration_right", delay, duration, frequency, amplitude)
+        VRMOD_TriggerHaptic("vibration_right", delay, math.clamp(duration,0,5), frequency, amplitude)
     end
     return
 end
