@@ -4,7 +4,8 @@ if not SF.Require("vrmod") then return function() end end
 -- @name VRmod
 -- @class library
 -- @libtbl vr_lib
-SF.hookAdd("VRUtilEventTracking","vr_tracking")
+SF.hookAdd("VRUtilEventTracking","vr_event_tracking")
+SF.hookAdd("VRUtilEventInput","vr_event_input")
 SF.RegisterLibrary("vr")
 
 g_VR = g_VR or {}
@@ -200,7 +201,12 @@ end
 
 --- Called when tracking data gets updated
 -- @client
--- @name vr_tracking
+-- @name vr_event_tracking
+-- @class hook
+
+--- Called when the actions get update (controller input)
+-- @client
+-- @name vr_event_input
 -- @class hook
 
 end
